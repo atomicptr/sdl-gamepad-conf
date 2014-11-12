@@ -1,3 +1,6 @@
+*.a
+/sdl-gamepad-conf
+
 # Created by https://www.gitignore.io
 
 ### Windows ###
