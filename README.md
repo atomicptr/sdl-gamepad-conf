@@ -8,6 +8,7 @@ Simple program to create SDL gamepad profiles
 * SDL2
 * SDL2_image
 * jsoncpp
+* ntd
 
 ## Gamepad Image
 
