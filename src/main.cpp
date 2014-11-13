@@ -11,7 +11,6 @@
 
 #include <texture_manager.hpp>
 
-
 int main() {
     SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -23,7 +22,7 @@ int main() {
         SDL_WINDOWPOS_UNDEFINED,
         600,
         600,
-        0
+        SDL_WINDOW_OPENGL
     );
 
     bool running = true;
@@ -42,7 +41,11 @@ int main() {
     };
 
     auto axis = std::vector<std::string>{
-        "LS_X", "LS_Y", "RS_X", "RS_Y", "LT", "RT"
+        "LS_X", "LS_Y", "RS_X", "RS_Y"
+    };
+
+    auto triggers = std::vector<std::string>{
+        "LT", "RT"
     };
 
     for(auto b : buttons) {
@@ -63,22 +66,27 @@ int main() {
         manager.add(a, str);
     }
 
+    for(auto t : triggers) {
+        auto str = std::string{"assets/gamepad_"} + t + ".png";
+
+        manager.add(t, str);
+    }
+
     manager.add("NOPE", "assets/gamepad_NOPE.png");
 
     SDL_Event event;
 
     int index = 0;
+
     bool buttons_done = false;
     bool hats_done = false;
+    bool axis_done = false;
+
     bool joy_moved = false;
     bool hats_are_buttons = false;
     int last_axis = -1;
 
     auto ptr = manager.get(buttons[index]);
-
-    if(!SDL_WasInit(SDL_INIT_JOYSTICK)) {
-        SDL_InitSubSystem(SDL_INIT_JOYSTICK);
-    }
 
     auto joynum = SDL_NumJoysticks();
 
@@ -152,28 +160,56 @@ int main() {
                     }
                 }
 
-                auto tval = event.jaxis.value < 0 ? event.jaxis.value * -1 : event.jaxis.value;
+                if(hats_done && !axis_done) {
+                    auto value = event.jaxis.value < 0 ? event.jaxis.value * -1 : event.jaxis.value;
 
-                std::cout << "hats done: " << hats_done << " moved? " <<  joy_moved << " motion event? " << (event.type == SDL_JOYAXISMOTION) << " last axis? " << last_axis << " " << int{event.jaxis.axis} << " val " << (tval < 1000) << std::endl;
+                    if(joy_moved && event.type == SDL_JOYAXISMOTION && last_axis == event.jaxis.axis && value < 1000) {
+                        joy_moved = false;
+                    }
 
-                if(hats_done && joy_moved && event.type == SDL_JOYAXISMOTION && last_axis == event.jaxis.axis && tval < 1000) {
-                    joy_moved = false;
+                    if(!joy_moved && event.type == SDL_JOYAXISMOTION && value > 28000) {
+                        auto axis_id = event.jaxis.axis;
+
+                        configs.insert(std::make_pair(axis[index], axis_id));
+
+                        joy_moved = true;
+                        last_axis = int{axis_id};
+
+                        index++;
+
+                        if(index == axis.size()) {
+                            axis_done = true;
+                            index = 0;
+                            joy_moved = false;
+                            last_axis = -1;
+
+                            ptr = manager.get(triggers[index]);
+                        } else {
+                            ptr = manager.get(axis[index]);
+                        }
+                    }
                 }
 
-                if(hats_done && !joy_moved && event.type == SDL_JOYAXISMOTION && tval > 32000) {
-                    auto axis_id = event.jaxis.axis;
+                if(axis_done) {
+                    if(joy_moved && event.type == SDL_JOYAXISMOTION && last_axis == event.jaxis.axis && event.jaxis.value < -30000) {
+                        joy_moved = false;
+                    }
 
-                    configs.insert(std::make_pair(axis[index], axis_id));
+                    if(event.type == SDL_JOYAXISMOTION && event.jaxis.value > 30000) {
+                        auto trigger_id = event.jaxis.axis;
 
-                    joy_moved = true;
-                    last_axis = int{axis_id};
+                        configs.insert(std::make_pair(triggers[index], trigger_id));
 
-                    index++;
+                        joy_moved = true;
+                        last_axis = int{trigger_id};
 
-                    if(index == axis.size()) {
-                        running = false;
-                    } else {
-                        ptr = manager.get(axis[index]);
+                        index++;
+
+                        if(index == triggers.size()) {
+                            running = false;
+                        } else {
+                            ptr = manager.get(triggers[index]);
+                        }
                     }
                 }
             }
