@@ -10,6 +10,7 @@
 #include <ntd/memory.hpp>
 
 #include <texture_manager.hpp>
+#include <json/json.h>
 
 int main() {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -95,8 +96,6 @@ int main() {
         SDL_JoystickEventState(SDL_ENABLE);
 
         auto name = SDL_JoystickNameForIndex(0);
-
-        std::cout << "Gamepad detected: " << name << std::endl;
 
         SDL_SetWindowTitle(window.get(), name);
     }
@@ -224,11 +223,17 @@ int main() {
         SDL_RenderPresent(renderer);
     }
 
-    std::cout << "Hats are buttons? " << hats_are_buttons << std::endl;
+    Json::Value root;
+    Json::Value config;
+    root["hats_are_buttons"] = hats_are_buttons;
 
     for(auto &c : configs) {
-        std::cout << c.first << ": " << c.second << std::endl;
+        config[c.first.c_str()] = c.second;
     }
+
+    root["config"] = config;
+
+    std::cout << root.toStyledString() << std::endl;
 
     if(joynum > 0 && SDL_JoystickGetAttached(0)) {
         SDL_JoystickClose(0);

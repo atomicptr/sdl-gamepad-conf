@@ -19,7 +19,7 @@ solution "sdl-gamepad-conf"
 
         files "src/**.cpp"
 
-        links {"SDL2", "SDL2_image", "ntd"}
+        links {"SDL2", "SDL2_image", "ntd", "deps"}
 
         configuration "debug"
             flags {"Symbols"}
