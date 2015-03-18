@@ -12,7 +12,7 @@
 #include <texture_manager.hpp>
 #include <json/json.h>
 
-int main() {
+int main(int argc, char** argv) {
     SDL_Init(SDL_INIT_EVERYTHING);
 
     auto window = ntd::make_smart<SDL_Window>(

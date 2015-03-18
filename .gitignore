@@ -1,5 +1,8 @@
 *.a
 /sdl-gamepad-conf
+*.exe
+/*.dll
+/*.lib
 
 # Created by https://www.gitignore.io
 
@@ -59,4 +62,3 @@ Temporary Items
 Makefile
 *.make
 obj/
-
